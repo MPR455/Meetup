@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111827" />
+    <meta
+      name="description"
+      content="Pick meetup dates together, chat with the group, and vote on where to eat."
+    />
+    <title>幹飯人 — meetup planner</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#schedule-panel" aria-label="幹飯人 home">
+          <span class="brand-mark" aria-hidden="true">飯</span>
+          <span>幹飯人</span>
+        </a>
+        <div class="topbar-actions">
+          <button class="avatar-button" id="profile-button" type="button" aria-label="Edit your name">
+            <span id="profile-initial">?</span>
+          </button>
+          <button class="button button-dark button-compact" id="admin-button" type="button">Admin</button>
+        </div>
+      </header>
+
+      <div class="connection-banner" id="connection-banner" role="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="connection-label">Starting…</span>
+      </div>
+
+      <main class="flow-stack">
+        <section class="flow-section" id="schedule-panel">
+          <div class="meeting-heading">
+            <div>
+              <p class="eyebrow">Planning now</p>
+              <h1 id="meeting-title">Next meetup</h1>
+              <p class="range-copy" id="meeting-range">Loading date range…</p>
+            </div>
+            <div class="view-switch" aria-label="Calendar view">
+              <button type="button" data-view="week">Week</button>
+              <button type="button" data-view="two-week">2 weeks</button>
+              <button type="button" data-view="month" class="is-active">Month</button>
+            </div>
+          </div>
+
+          <section class="card calendar-card" aria-labelledby="calendar-label">
+            <div class="calendar-toolbar">
+              <div>
+                <p class="calendar-kicker">Tap your free days</p>
+                <h2 id="calendar-label">This month</h2>
+              </div>
+              <div class="calendar-controls">
+                <button class="icon-button" id="previous-period" type="button" aria-label="Previous period">←</button>
+                <button class="today-button" id="today-button" type="button">Today</button>
+                <button class="icon-button" id="next-period" type="button" aria-label="Next period">→</button>
+              </div>
+            </div>
+
+            <div class="weekday-row" aria-hidden="true">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="calendar-grid" id="calendar-grid" aria-live="polite"></div>
+
+            <div class="calendar-legend">
+              <span><i class="legend-swatch mine"></i> Your choice</span>
+              <span><i class="legend-swatch group"></i> Group available</span>
+            </div>
+          </section>
+
+          <div class="schedule-lower-grid">
+            <section class="card day-detail" id="day-detail" aria-live="polite">
+              <p class="eyebrow">Selected day</p>
+              <h2 id="selected-day-title">Choose a date</h2>
+              <div id="selected-day-people" class="people-list"></div>
+            </section>
+
+            <section class="card best-dates-card">
+              <div class="card-heading-row">
+                <div>
+                  <p class="eyebrow">Group overlap</p>
+                  <h2>Best dates</h2>
+                </div>
+                <span class="tiny-chip" id="response-count">0 people</span>
+              </div>
+              <ol class="best-dates" id="best-dates"></ol>
+            </section>
+          </div>
+        </section>
+
+        <section class="flow-section" id="chat-panel">
+          <div class="panel-heading compact-panel-heading">
+            <h2 class="section-title">Chat</h2>
+          </div>
+          <section class="card chat-card">
+            <div class="message-list" id="message-list" aria-live="polite"></div>
+            <form class="composer" id="message-form">
+              <label class="sr-only" for="message-input">Message</label>
+              <textarea id="message-input" maxlength="600" rows="2" placeholder="Write a message…" required></textarea>
+              <button class="button button-accent" type="submit">Send</button>
+            </form>
+          </section>
+        </section>
+
+        <section class="flow-section" id="food-panel">
+          <div class="panel-heading food-heading compact-panel-heading">
+            <h2 class="section-title">Food vote</h2>
+            <button class="button button-accent" id="show-restaurant-form" type="button">+ Add place</button>
+          </div>
+
+          <form class="card restaurant-form" id="restaurant-form" hidden>
+            <div class="form-heading">
+              <h2>Add a restaurant</h2>
+              <button class="icon-button" id="hide-restaurant-form" type="button" aria-label="Close form">×</button>
+            </div>
+            <label>
+              Restaurant name
+              <input id="restaurant-name" maxlength="80" autocomplete="off" required placeholder="e.g. Little Lemon" />
+            </label>
+            <label>
+              Note <span class="optional">optional</span>
+              <input id="restaurant-note" maxlength="140" autocomplete="off" placeholder="Cuisine, neighborhood, or link" />
+            </label>
+            <button class="button button-dark" type="submit">Add to the vote</button>
+          </form>
+
+          <div class="restaurant-list" id="restaurant-list" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="profile-dialog">
+      <form method="dialog" id="profile-form">
+        <div class="modal-mark" aria-hidden="true">Hi</div>
+        <p class="eyebrow">Your name</p>
+        <h2>How should the group see you?</h2>
+        <p>Your name appears beside your available dates, messages, and restaurant suggestions.</p>
+        <label>
+          Display name
+          <input id="display-name" maxlength="40" autocomplete="name" required placeholder="e.g. Jamie" />
+        </label>
+        <div class="modal-actions">
+          <button class="button button-accent" type="submit">Continue</button>
+          <button class="button button-quiet" id="profile-cancel" type="button">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="admin-dialog">
+      <form method="dialog" id="admin-form">
+        <div class="form-heading">
+          <div>
+            <p class="eyebrow">Admin settings</p>
+            <h2>Plan the meetup window</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog="admin-dialog" aria-label="Close">×</button>
+        </div>
+        <label>
+          Meetup title
+          <input id="admin-title" maxlength="80" required />
+        </label>
+        <div class="form-row">
+          <label>
+            First possible day
+            <input id="admin-start" type="date" required />
+          </label>
+          <label>
+            Last possible day
+            <input id="admin-end" type="date" required />
+          </label>
+        </div>
+        <label>
+          Default calendar view
+          <select id="admin-view">
+            <option value="week">Week</option>
+            <option value="two-week">Two weeks</option>
+            <option value="month">Month</option>
+          </select>
+        </label>
+        <div class="modal-actions">
+          <button class="button button-accent" type="submit">Save changes</button>
+          <button class="button button-quiet" type="button" data-close-dialog="admin-dialog">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="password-dialog">
+      <form method="dialog" id="password-form">
+        <div class="form-heading">
+          <div>
+            <p class="eyebrow">Admin access</p>
+            <h2 id="password-title">Enter the admin password</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog="password-dialog" aria-label="Close">×</button>
+        </div>
+        <p id="password-description">The password unlocks meetup settings on this device for 12 hours.</p>
+        <label>
+          Password
+          <input id="admin-password" type="password" minlength="6" maxlength="128" autocomplete="current-password" required />
+        </label>
+        <p class="form-feedback" id="password-feedback" role="status"></p>
+        <button class="button button-accent" type="submit">Unlock settings</button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
