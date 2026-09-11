@@ -39,7 +39,6 @@ body {
 
 button,
 input,
-textarea,
 select {
   font: inherit;
 }
@@ -50,7 +49,6 @@ button {
 
 button:focus-visible,
 input:focus-visible,
-textarea:focus-visible,
 select:focus-visible {
   outline: 3px solid rgba(101, 88, 245, 0.28);
   outline-offset: 2px;
@@ -533,75 +531,6 @@ main {
   font-weight: 900;
 }
 
-.chat-card {
-  overflow: hidden;
-}
-
-.message-list {
-  min-height: 20rem;
-  max-height: 56vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  padding: 1rem;
-}
-
-.message {
-  display: grid;
-  grid-template-columns: 2.35rem minmax(0, 1fr);
-  gap: 0.65rem;
-  align-items: start;
-}
-
-.message-avatar {
-  width: 2.35rem;
-  height: 2.35rem;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  color: #243025;
-  background: var(--mint);
-  font-weight: 900;
-}
-
-.message.is-mine .message-avatar {
-  color: white;
-  background: var(--accent);
-}
-
-.message-meta {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.message-author {
-  font-weight: 850;
-}
-
-.message-time {
-  color: #8993a3;
-  font-size: 0.75rem;
-}
-
-.message-body {
-  margin: 0.18rem 0 0;
-  color: #344054;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.composer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.6rem;
-  padding: 0.8rem;
-  border-top: 1px solid var(--line);
-  background: #f8f9fc;
-}
-
-textarea,
 input,
 select {
   width: 100%;
@@ -611,10 +540,6 @@ select {
   border-radius: 12px;
   color: var(--ink);
   background: white;
-}
-
-textarea {
-  resize: vertical;
 }
 
 .button {

@@ -6,7 +6,7 @@
 
 - `dist/index.html` — app interface
 - `dist/styles.css` — responsive visual design
-- `dist/app.js` — calendar, chat, voting, storage adapters, and WebMCP tools
+- `dist/app.js` — calendar, voting, storage adapters, and WebMCP tools
 - `dist/config.js` — Supabase public connection values
 - `supabase/schema.sql` — database tables, realtime configuration, and security policies
 - `.github/workflows/pages.yml` — GitHub Pages deployment

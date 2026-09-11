@@ -19,7 +19,6 @@
     isAdmin: false,
     settings: null,
     availability: [],
-    messages: [],
     restaurants: [],
     votes: [],
     view: localStorage.getItem(viewKey) || "month",
@@ -79,8 +78,8 @@
       "connection-banner", "connection-label", "profile-button", "profile-initial", "admin-button",
       "meeting-title", "meeting-range", "calendar-label", "calendar-grid",
       "previous-period", "next-period", "today-button", "selected-day-title", "selected-day-people",
-      "response-count", "best-dates", "message-list", "message-form", "message-input",
-      "show-restaurant-form", "hide-restaurant-form", "restaurant-form", "restaurant-name",
+      "response-count", "best-dates", "show-restaurant-form", "hide-restaurant-form",
+      "restaurant-form", "restaurant-name",
       "restaurant-note", "restaurant-list", "profile-dialog", "profile-form", "display-name",
       "profile-cancel", "admin-dialog", "admin-form", "admin-title", "admin-start", "admin-end",
       "admin-view", "password-dialog", "password-form", "admin-password", "password-title",
@@ -103,7 +102,6 @@
     el.profileCancel.addEventListener("click", () => el.profileDialog.close());
     el.adminForm.addEventListener("submit", handleAdminSubmit);
     el.passwordForm.addEventListener("submit", handlePasswordSubmit);
-    el.messageForm.addEventListener("submit", handleMessageSubmit);
     el.showRestaurantForm.addEventListener("click", () => {
       el.restaurantForm.hidden = false;
       el.restaurantName.focus();
@@ -164,7 +162,6 @@
     const snapshot = await state.adapter.load();
     state.settings = snapshot.settings;
     state.availability = snapshot.availability || [];
-    state.messages = snapshot.messages || [];
     state.restaurants = snapshot.restaurants || [];
     state.votes = snapshot.votes || [];
     state.isAdmin = await state.adapter.isAdmin();
@@ -201,7 +198,6 @@
     renderCalendar();
     renderSelectedDay();
     renderBestDates();
-    renderMessages();
     renderRestaurants();
   }
 
@@ -356,51 +352,6 @@
       count.textContent = `${item.count} free`;
       row.append(rank, label, count);
       el.bestDates.append(row);
-    });
-  }
-
-  function renderMessages() {
-    el.messageList.replaceChildren();
-    const messages = state.messages.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    if (!messages.length) {
-      el.messageList.append(emptyState("No messages yet", "Start the conversation with the group."));
-    } else {
-      messages.forEach((item) => {
-        const article = document.createElement("article");
-        article.className = `message${item.user_id === state.userId ? " is-mine" : ""}`;
-        const avatar = document.createElement("div");
-        avatar.className = "message-avatar";
-        avatar.textContent = initialFor(item.display_name);
-        const content = document.createElement("div");
-        const meta = document.createElement("div");
-        meta.className = "message-meta";
-        const author = document.createElement("span");
-        author.className = "message-author";
-        author.textContent = item.user_id === state.userId ? `${item.display_name} · you` : item.display_name;
-        const time = document.createElement("time");
-        time.className = "message-time";
-        time.dateTime = item.created_at;
-        time.textContent = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(item.created_at));
-        const body = document.createElement("p");
-        body.className = "message-body";
-        body.textContent = item.body;
-        meta.append(author, time);
-        content.append(meta, body);
-        article.append(avatar, content);
-        el.messageList.append(article);
-      });
-    }
-  }
-
-  async function handleMessageSubmit(event) {
-    event.preventDefault();
-    const body = el.messageInput.value.trim();
-    if (!body) return;
-    await runButtonTask(event.submitter, async () => {
-      await state.adapter.addMessage(body, state.displayName);
-      el.messageForm.reset();
-      await refreshData(false);
-      el.messageList.scrollTop = el.messageList.scrollHeight;
     });
   }
 
@@ -636,7 +587,7 @@
       {
         name: "get_meetup_overview",
         title: "Get meetup overview",
-        description: "Read the meetup date range, leading dates, recent messages, and restaurant vote totals.",
+        description: "Read the meetup date range, leading dates, and restaurant vote totals.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: true },
         execute: async () => {
@@ -666,25 +617,6 @@
           await Promise.all(dates.map((date) => state.adapter.setAvailability(date, input.available, state.displayName)));
           await refreshData(false);
           return { updatedDates: dates, available: input.available };
-        },
-      },
-      {
-        name: "add_meetup_comment",
-        title: "Add meetup comment",
-        description: "Post a message to the meetup group chat as the current user.",
-        inputSchema: {
-          type: "object",
-          properties: { message: { type: "string", minLength: 1, maxLength: 600 } },
-          required: ["message"],
-          additionalProperties: false,
-        },
-        annotations: { readOnlyHint: false, untrustedContentHint: false },
-        execute: async (input) => {
-          const message = String(input?.message || "").trim();
-          if (!message || message.length > 600) throw new Error("Message must be 1 to 600 characters.");
-          await state.adapter.addMessage(message, state.displayName);
-          await refreshData(false);
-          return { posted: true };
         },
       },
       {
@@ -753,7 +685,6 @@
       title: state.settings.title,
       dateRange: { start: state.settings.start_date, end: state.settings.end_date },
       availabilityCounts: counts,
-      recentMessages: state.messages.slice(-5).map((item) => ({ author: item.display_name, message: item.body, createdAt: item.created_at })),
       restaurants: state.restaurants.map((item) => ({ id: item.id, name: item.name, note: item.note, votes: voteCounts[item.id] || 0 })),
     };
   }
@@ -789,7 +720,6 @@
       return {
         settings: data.settings,
         availability: data.availability,
-        messages: data.messages,
         restaurants: data.restaurants,
         votes: data.votes,
       };
@@ -836,14 +766,6 @@
         data.availability.push({ settings_id: meetupId, user_id: this.userId, available_date: date, display_name: displayName });
       }
       this.write(data);
-    }
-
-    async addMessage(body, displayName) {
-      const data = this.read();
-      const record = { id: crypto.randomUUID(), settings_id: meetupId, user_id: this.userId, display_name: displayName, body, created_at: new Date().toISOString() };
-      data.messages.push(record);
-      this.write(data);
-      return record;
     }
 
     async addRestaurant(name, note, displayName) {
@@ -906,17 +828,16 @@
     }
 
     async load() {
-      const [settings, availability, messages, restaurants, votes] = await Promise.all([
+      const [settings, availability, restaurants, votes] = await Promise.all([
         this.client.from("settings").select("*").eq("id", meetupId).single(),
         this.client.from("availability").select("*").eq("settings_id", meetupId),
-        this.client.from("messages").select("*").eq("settings_id", meetupId).order("created_at", { ascending: true }).limit(500),
         this.client.from("restaurants").select("*").eq("settings_id", meetupId).order("created_at", { ascending: true }),
         this.client.from("votes").select("*").eq("settings_id", meetupId),
       ]);
-      [settings, availability, messages, restaurants, votes].forEach((result) => {
+      [settings, availability, restaurants, votes].forEach((result) => {
         if (result.error) throw result.error;
       });
-      return { settings: settings.data, availability: availability.data, messages: messages.data, restaurants: restaurants.data, votes: votes.data };
+      return { settings: settings.data, availability: availability.data, restaurants: restaurants.data, votes: votes.data };
     }
 
     async saveSettings(next) {
@@ -937,12 +858,6 @@
         const { error } = await this.client.from("availability").delete().eq("settings_id", meetupId).eq("user_id", this.userId).eq("available_date", date);
         if (error) throw error;
       }
-    }
-
-    async addMessage(body, displayName) {
-      const { data, error } = await this.client.from("messages").insert({ settings_id: meetupId, user_id: this.userId, display_name: displayName, body }).select().single();
-      if (error) throw error;
-      return data;
     }
 
     async addRestaurant(name, note, displayName) {
@@ -972,7 +887,6 @@
         .channel(`meetwell-${meetupId}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "settings", filter: `id=eq.${meetupId}` }, callback)
         .on("postgres_changes", { event: "*", schema: "public", table: "availability", filter: `settings_id=eq.${meetupId}` }, callback)
-        .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `settings_id=eq.${meetupId}` }, callback)
         .on("postgres_changes", { event: "*", schema: "public", table: "restaurants", filter: `settings_id=eq.${meetupId}` }, callback)
         .on("postgres_changes", { event: "*", schema: "public", table: "votes", filter: `settings_id=eq.${meetupId}` }, callback)
         .subscribe();
@@ -997,7 +911,6 @@
       },
       profiles: {},
       availability: [],
-      messages: [],
       restaurants: [],
       votes: [],
     };

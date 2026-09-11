@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#111827" />
     <meta
       name="description"
-      content="Pick meetup dates together, chat with the group, and vote on where to eat."
+      content="Pick meetup dates together and vote on where to eat."
     />
     <title>幹飯人 — meetup planner</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -90,20 +90,6 @@
           </div>
         </section>
 
-        <section class="flow-section" id="chat-panel">
-          <div class="panel-heading compact-panel-heading">
-            <h2 class="section-title">Chat</h2>
-          </div>
-          <section class="card chat-card">
-            <div class="message-list" id="message-list" aria-live="polite"></div>
-            <form class="composer" id="message-form">
-              <label class="sr-only" for="message-input">Message</label>
-              <textarea id="message-input" maxlength="600" rows="2" placeholder="Write a message…" required></textarea>
-              <button class="button button-accent" type="submit">Send</button>
-            </form>
-          </section>
-        </section>
-
         <section class="flow-section" id="food-panel">
           <div class="panel-heading food-heading compact-panel-heading">
             <h2 class="section-title">Food vote</h2>
@@ -136,7 +122,7 @@
         <div class="modal-mark" aria-hidden="true">Hi</div>
         <p class="eyebrow">Your name</p>
         <h2>How should the group see you?</h2>
-        <p>Your name appears beside your available dates, messages, and restaurant suggestions.</p>
+        <p>Your name appears beside your available dates and restaurant suggestions.</p>
         <label>
           Display name
           <input id="display-name" maxlength="40" autocomplete="name" required placeholder="e.g. Jamie" />
